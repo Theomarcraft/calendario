@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Agendar Cita Médica</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #0ff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1, h2 {
+      color: #0ff;
+      text-shadow: 0 0 5px #0ff;
+    }
+
+    .contenedor {
+      background-color: #111;
+      border: 1px solid #00f0ff;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 600px;
+      margin: 20px auto;
+      box-shadow: 0 0 15px #00f0ff;
+    }
+
+    button {
+      background-color: #00f0ff;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      margin: 10px;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #00d0dd;
+    }
+
+    .dias {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin-top: 10px;
+    }
+
+    .dia {
+      background-color: #222;
+      color: #0ff;
+      padding: 10px;
+      border: 1px solid #00f0ff;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .dia:hover {
+      background-color: #333;
+    }
+
+    .seleccionado {
+      background-color: #0ff;
+      color: #000;
+      font-weight: bold;
+    }
+
+    input, textarea {
+      width: 90%;
+      padding: 10px;
+      margin-top: 10px;
+      background-color: #222;
+      border: 1px solid #00f0ff;
+      border-radius: 5px;
+      color: #0ff;
+    }
+
+    .oculto {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="contenedor" id="pantallaCalendario">
+    <h1>Selecciona un Día</h1>
+    <div>
+      <button onclick="cambiarMes(-1)">⏪ Mes anterior</button>
+      <span id="mesActual"></span>
+      <button onclick="cambiarMes(1)">Mes siguiente ⏩</button>
+    </div>
+    <div class="dias" id="contenedorDias"></div>
+  </div>
+
+  <div class="contenedor oculto" id="pantallaDetalles">
+    <h2>Confirmar Cita Médica</h2>
+    <p id="fechaSeleccionada"></p>
+
+    <input type="text" id="nombre" placeholder="Nombre completo" />
+    <input type="number" id="edad" placeholder="Edad" />
+    <input type="email" id="correo" placeholder="Correo electrónico" />
+    <input type="tel" id="telefono" placeholder="Teléfono de contacto" />
+    <input type="text" id="documento" placeholder="Documento de identidad" />
+    <input type="text" id="motivo" placeholder="Motivo de la consulta" />
+    <input type="time" id="hora" />
+    <textarea id="notas" placeholder="Observaciones adicionales" rows="3"></textarea>
+
+    <div style="margin-top: 20px;">
+      <button onclick="volverCalendario()">Seleccionar otro día</button>
+      <button onclick="confirmarCita()">Confirmar cita</button>
+    </div>
+  </div>
+
+  <script>
+    let fechaActual = new Date();
+    let diaSeleccionado = null;
+
+    function mostrarCalendario() {
+      const mes = fechaActual.getMonth();
+      const año = fechaActual.getFullYear();
+
+      document.getElementById('mesActual').textContent = fechaActual.toLocaleString('es-ES', {
+        month: 'long',
+        year: 'numeric'
+      }).toUpperCase();
+
+      const contenedor = document.getElementById('contenedorDias');
+      contenedor.innerHTML = '';
+
+      const primerDia = new Date(año, mes, 1).getDay();
+      const diasMes = new Date(año, mes + 1, 0).getDate();
+
+      for (let i = 0; i < primerDia; i++) {
+        contenedor.innerHTML += `<div></div>`;
+      }
+
+      for (let dia = 1; dia <= diasMes; dia++) {
+        const div = document.createElement('div');
+        div.className = 'dia';
+        div.textContent = dia;
+        div.onclick = () => seleccionarDia(dia);
+        contenedor.appendChild(div);
+      }
+    }
+
+    function cambiarMes(delta) {
+      fechaActual.setMonth(fechaActual.getMonth() + delta);
+      mostrarCalendario();
+    }
+
+    function seleccionarDia(dia) {
+      diaSeleccionado = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), dia);
+      const fechaTexto = diaSeleccionado.toLocaleDateString('es-ES', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+      document.getElementById('fechaSeleccionada').textContent = `📅 Has seleccionado el ${fechaTexto}`;
+
+      document.getElementById('pantallaCalendario').classList.add('oculto');
+      document.getElementById('pantallaDetalles').classList.remove('oculto');
+    }
+
+    function volverCalendario() {
+      document.getElementById('pantallaDetalles').classList.add('oculto');
+      document.getElementById('pantallaCalendario').classList.remove('oculto');
+    }
+
+    function confirmarCita() {
+      const nombre = document.getElementById('nombre').value.trim();
+      const edad = document.getElementById('edad').value.trim();
+      const correo = document.getElementById('correo').value.trim();
+      const telefono = document.getElementById('telefono').value.trim();
+      const documento = document.getElementById('documento').value.trim();
+      const motivo = document.getElementById('motivo').value.trim();
+      const hora = document.getElementById('hora').value;
+      const notas = document.getElementById('notas').value.trim();
+
+      if (!nombre || !edad || !correo || !telefono || !documento || !motivo || !hora) {
+        alert("⚠️ Por favor completa todos los campos obligatorios.");
+        return;
+      }
+
+      const fechaTexto = diaSeleccionado.toLocaleDateString('es-ES', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+
+      alert(
+        `✅ Cita confirmada para ${nombre} el ${fechaTexto} a las ${hora}.\n` +
+        `📧 Correo: ${correo}\n📱 Teléfono: ${telefono}\n🧾 Documento: ${documento}\n` +
+        `🏥 Motivo: ${motivo}\n📝 Observaciones: ${notas}`
+      );
+
+      volverCalendario();
+    }
+
+    // Iniciar calendario al cargar
+    window.onload = mostrarCalendario;
+  </script>
+
+</body>
+</html>
